@@ -1,0 +1,3 @@
+ssh -p 2222 -L 5432:pg:5432 s311817@se.ifmo.ru
+ssh -p 2222 -L 22600:localhost:22600 s311817@se.ifmo.ru
+ssh -p 2222 -L 22600:localhost:22602 s311817@se.ifmo.ru

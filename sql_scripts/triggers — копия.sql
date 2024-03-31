@@ -106,7 +106,7 @@ begin
     if old.статус = 'отклонен' or old.статус = 'выполнен' then
         raise exception 'отклоненные или выполненные заказы модифицировать нельзя';
     end if;
-
+    
     -- Проверка дат
 	if new.завершен is not null then
 		if not (new.статус = 'отклонен' or new.статус = 'выполнен') then
@@ -117,6 +117,14 @@ begin
 			raise exception 'дата завершения заказа (%) раньше даты поступления заказа (%)', new.завершен, new.поступил;
 		end if;
 	end if;
+    
+    if new.статус = 'отклонен' and old.статус != 'отклонен' then
+        -- Сообщить о необходимости возвращения продукции на склад
+        update "Продукция_в_заказе"
+        set статус = 'ожидает возвращения'
+        where "Продукция_в_заказе".ид_заказа = new.ид;
+    end if;
+    
     return new;
 end;
 $$ language plpgsql;
@@ -126,25 +134,6 @@ create or replace trigger b_u_Заказ
 before update on "Заказ"
 for each row
 execute function tf_b_u_Заказ();
-
-create or replace function tf_a_u_Заказ()
-    returns trigger as $$
-begin
-    if old.статус = 'отклонен' then
-        update "Продукция_в_заказе"
-        set статус = 'ожидает возвращения'
-        where "Продукция_в_заказе".ид_заказа = new.ид;
-    end if;
-
-    return old;
-end;
-$$ language plpgsql;
-
-
-create or replace trigger a_u_Заказ
-    after update on "Заказ"
-    for each row
-execute function tf_a_u_Заказ();
 
 -- 2.2. Проверка изменения сотрудничества
 
@@ -294,31 +283,17 @@ begin
 end
 $$ language plpgsql;
 
-create or replace function tf_b_iu_Продукция_в_заказе()
+create or replace function tf_b_iud_Продукция_в_заказе()
 returns trigger as $$
 begin
-    call p_подсчет_суммы_заказа(new.ид_заказа);
-    return new;
+    execute p_подсчет_суммы_заказа(new.ид_заказа);
 end;
 $$ language plpgsql;
 
 create or replace trigger b_iud_Продукция_в_заказе
-before insert or update on "Продукция_в_заказе"
+before insert or update or delete on "Продукция_в_заказе"
 for each row
-execute function tf_b_iu_Продукция_в_заказе();
-
-create or replace function tf_a_d_Продукция_в_заказе()
-    returns trigger as $$
-begin
-    call p_подсчет_суммы_заказа(old.ид_заказа);
-    return null;
-end;
-$$ language plpgsql;
-
-create or replace trigger a_d_Продукция_в_заказе
-after delete on "Продукция_в_заказе"
-for each row
-execute function tf_a_d_Продукция_в_заказе();
+execute function tf_b_iud_Продукция_в_заказе();
 
 -- 7.1. Проверка удаления типов продукции
 
