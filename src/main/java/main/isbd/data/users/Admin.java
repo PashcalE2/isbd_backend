@@ -1,4 +1,4 @@
-package main.isbd.data;
+package main.isbd.data.users;
 
 import jakarta.persistence.*;
 

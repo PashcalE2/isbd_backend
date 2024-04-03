@@ -1,16 +1,19 @@
-package main.isbd.data;
+package main.isbd.data.users;
 
 import jakarta.persistence.*;
 
 import java.util.Objects;
 
 @Entity
-@Table(name = "Клиент", schema = "s311817", catalog = "studs")
-public class Client {
+@Table(name = "Завод", schema = "s311817", catalog = "studs")
+public class Factory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "ид", nullable = false)
     private Integer id;
+    @Basic
+    @Column(name = "название", nullable = false, length = -1)
+    private String name;
     @Basic
     @Column(name = "номер_телефона", nullable = false, length = 20)
     private String phone_number;
@@ -27,6 +30,14 @@ public class Client {
 
     public void setId(Integer ид) {
         this.id = ид;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getPhoneNumber() {
@@ -58,13 +69,14 @@ public class Client {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Client client = (Client) o;
+        Factory factory = (Factory) o;
 
-        if (!Objects.equals(id, client.id)) return false;
-        if (!Objects.equals(phone_number, client.phone_number))
+        if (!Objects.equals(id, factory.id)) return false;
+        if (!Objects.equals(name, factory.name)) return false;
+        if (!Objects.equals(phone_number, factory.phone_number))
             return false;
-        if (!Objects.equals(email, client.email)) return false;
-        if (!Objects.equals(password, client.password)) return false;
+        if (!Objects.equals(email, factory.email)) return false;
+        if (!Objects.equals(password, factory.password)) return false;
 
         return true;
     }
@@ -72,6 +84,7 @@ public class Client {
     @Override
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (phone_number != null ? phone_number.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);

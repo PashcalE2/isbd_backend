@@ -1,15 +1,15 @@
-package main.isbd.data;
+package main.isbd.data.users;
 
-public class ClientLogin {
-    private String name;
+public class AdminLogin {
+    private Integer id;
     private String password;
 
-    public String getName() {
-        return name;
+    public Integer getId() {
+        return id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getPassword() {
@@ -21,7 +21,7 @@ public class ClientLogin {
     }
 
     public boolean isValid() {
-        return  name != null && name.length() > 0
+        return  id != null
                 && password != null && password.length() > 0;
     }
 }

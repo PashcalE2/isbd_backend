@@ -275,26 +275,28 @@ execute function tf_b_d_Расписание_сотрудников();
 
 -- 6. Изменения заказа при вставке/изменении/удалении продукции в заказе
 
+drop procedure if exists p_подсчет_суммы_заказа;
 create or replace procedure p_подсчет_суммы_заказа(
-    ид_заказа int
+    arg_ид_заказа int
 )
 as $$
 begin
-    if (select count(*) from "Продукция_в_заказе" where "Продукция_в_заказе".ид_заказа = "p_подсчет_суммы_заказа".ид_заказа) = 0 then
+    if (select count(*) from "Продукция_в_заказе" where "Продукция_в_заказе".ид_заказа = arg_ид_заказа) = 0 then
         update "Заказ" set итоговая_сумма = 0
-            where "Заказ".ид = ид_заказа;
+            where "Заказ".ид = arg_ид_заказа;
     else
         update "Заказ" set итоговая_сумма =
             (select sum(("Продукция_в_заказе".количество)::real * "Тип_продукции".цена)
                 from "Продукция_в_заказе" inner join "Тип_продукции"
                 on "Продукция_в_заказе".ид_типа = "Тип_продукции".ид
-                where "Продукция_в_заказе".ид_заказа = "p_подсчет_суммы_заказа".ид_заказа)
-            where "Заказ".ид = "p_подсчет_суммы_заказа".ид_заказа;
+                where "Продукция_в_заказе".ид_заказа = arg_ид_заказа)
+            where "Заказ".ид = arg_ид_заказа;
     end if;
 end
 $$ language plpgsql;
 
-create or replace function tf_b_iu_Продукция_в_заказе()
+drop function if exists tf_b_iu_Продукция_в_заказе;
+create or replace function tf_a_iu_Продукция_в_заказе()
 returns trigger as $$
 begin
     call p_подсчет_суммы_заказа(new.ид_заказа);
@@ -302,10 +304,11 @@ begin
 end;
 $$ language plpgsql;
 
-create or replace trigger b_iud_Продукция_в_заказе
-before insert or update on "Продукция_в_заказе"
+drop trigger if exists a_iu_Продукция_в_заказе on "Продукция_в_заказе";
+create or replace trigger a_iu_Продукция_в_заказе
+after insert or update on "Продукция_в_заказе"
 for each row
-execute function tf_b_iu_Продукция_в_заказе();
+execute function tf_a_iu_Продукция_в_заказе();
 
 create or replace function tf_a_d_Продукция_в_заказе()
     returns trigger as $$
